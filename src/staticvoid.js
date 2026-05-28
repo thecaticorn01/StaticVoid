@@ -90,6 +90,10 @@ var CONFIG = {
 var activeLayer1Rules = [];
 var activeLayer2Rules = [];
 
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function initActiveRules() {
   activeLayer1Rules = [];
   activeLayer2Rules = [];
@@ -108,7 +112,7 @@ function initActiveRules() {
       activeLayer1Rules.push({
         id: "SENDER_TLD",
         run: function(m) {
-          var escaped = CONFIG.features.senderJunkTlds.list.map(function(tld) { return tld.replace(/\./g, "\\."); });
+          var escaped = CONFIG.features.senderJunkTlds.list.map(escapeRegExp);
           var regex = new RegExp("\\.(" + escaped.join("|") + ")>?$", "i");
           return Boolean(m.getFrom().match(regex));
         }
@@ -141,7 +145,7 @@ function initActiveRules() {
       activeLayer2Rules.push({
         id: "BODY_TLD",
         run: function(m, raw) {
-          var escaped = CONFIG.features.senderJunkTlds.list.map(function(tld) { return tld.replace(/\./g, "\\."); });
+          var escaped = CONFIG.features.senderJunkTlds.list.map(escapeRegExp);
           var regex = new RegExp("(https?|www).+\\.(" + escaped.join("|") + ")(\\b|/)", "i");
           return Boolean(raw.body && raw.body.match(regex));
         }
@@ -203,7 +207,7 @@ function checkWhitelist(thread, firstMessage) {
     if (fromField.includes(CONFIG.whitelist.trustedEmails[i].toLowerCase())) return true;
   }
   for (var j = 0; j < CONFIG.whitelist.trustedDomains.length; j++) {
-    var domainRegex = new RegExp("\\." + CONFIG.whitelist.trustedDomains[j].replace(/\./g, "\\.") + ">?$", "i");
+    var domainRegex = new RegExp("\\." + escapeRegExp(CONFIG.whitelist.trustedDomains[j]) + ">?$", "i");
     if (fromField.match(domainRegex)) return true;
   }
   for (var k = 0; k < CONFIG.whitelist.trustedKeywords.length; k++) {
